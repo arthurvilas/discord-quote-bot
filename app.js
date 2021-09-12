@@ -1,14 +1,20 @@
 require('dotenv').config();
 const keepAlive = require('./server');
 const fs = require('fs');
-const { Client, Intents } = require('discord.js');
+const path = require('path');
+const { Client, Intents, MessageAttachment } = require('discord.js');
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
 
-
 let localFile;
-function getQuote(localFile) {
-  const quoteNum = Math.floor(Math.random() * localFile.length);
-  return localFile[quoteNum].trim();
+function getQuote(localFileContents) {
+  const quoteNum = Math.floor(Math.random() * localFileContents.length);
+  return localFileContents[quoteNum].trim();
+}
+
+function getImage() {
+  const imageList = fs.readdirSync('./images');
+  let randomImage = imageList[Math.floor(Math.random() * imageList.length)];
+  return path.join('images', randomImage);
 }
 
 client.on("ready", () => {
@@ -27,6 +33,9 @@ client.on("message", (msg) => {
   } else if (/<!COMMANDFORFILE2>/i.test(msg.content)) {
     localFile = fs.readFileSync('.file2.txt', 'utf-8').split(/\r?\n/);
     msg.channel.send(`*"${getQuote(localFile)}"*`);
+  
+  } else if (/<!COMMANDFORIMG>/i.test(msg.content)) {
+    msg.channel.send({files: [getImage()]});
   }
 });
 
